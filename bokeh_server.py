@@ -2,6 +2,7 @@
 For the Server to work,
 Redis Server must be running and channels must be published to.
 
+Start the server using "bokeh serve --bokeh_server.py"
 '''
 #FIXME This server has been hacked together to test bokeh
 # Needs to be improved alot before it can replace TKinter app
