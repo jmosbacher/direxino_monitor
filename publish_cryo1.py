@@ -31,7 +31,7 @@ if __name__=='__main__':
         produce = collector(readers, queue, DELAY=READ_EVERY)
         producers.append(produce)
 
-    publish = redis_publisher(queue, channel='Cryo1')
+    publish = redis_publisher(queue, loop, channel='Cryo1')
     loop.run_until_complete(asyncio.gather(*producers,publish))
     try:
         loop.run_forever()

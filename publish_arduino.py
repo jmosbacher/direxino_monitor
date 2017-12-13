@@ -19,7 +19,7 @@ if __name__=='__main__':
     loop = asyncio.get_event_loop()
     reader = SocketReader(settings,loop=loop)
     produce = producer(reader, queue, DELAY=READ_EVERY)
-    publish = redis_publisher(queue, channel='Arduino')
+    publish = redis_publisher(queue, loop, channel='Arduino')
     loop.run_until_complete(asyncio.gather(produce,publish))
     try:
         loop.run_forever()
