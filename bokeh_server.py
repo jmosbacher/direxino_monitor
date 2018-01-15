@@ -37,6 +37,7 @@ MAXDATA = 100
 NROWS = 2
 NCOLS = 2
 UPDATE = 500 #ms
+
 doc = curdoc()
 
 AVAILABLE = ['Arduino', 'Cryo1','Cryo2','Camera']
@@ -55,6 +56,12 @@ imsrc = ColumnDataSource(imdata)
 latest_text = PreText(text='', width=600, height=300)
 lbl = PreText(text='Latest Data', width=600, height=50)
 lt = column(widgetbox(lbl),widgetbox(latest_text))
+
+
+def build_header():
+    div = Div(text="<img src='myapp/static/Snail.png'>")
+    label = PreText(text='Control', width=350)
+    return row(widgetbox(div),widgetbox(label))
 
 def get_data_names(channel):
     names = []
@@ -83,6 +90,13 @@ def build_image_figure():
                 )
     fig.toolbar.logo = None
     fig.toolbar_location = None
+    fig.xaxis.major_tick_line_color = None  # turn off x-axis major ticks
+    fig.xaxis.minor_tick_line_color = None  # turn off x-axis minor ticks
+    fig.yaxis.major_tick_line_color = None  # turn off y-axis major ticks
+    fig.yaxis.minor_tick_line_color = None  # turn off y-axis minor ticks
+    fig.xaxis.major_label_text_font_size = '0pt'  # preferred method for removing tick labels
+    fig.yaxis.major_label_text_font_size = '0pt'  # preferred method for removing tick labels
+
     im = fig.image(image='image',x=0,y=0,dw=100,dh=100, source=imsrc)
     #log.info(str(im))
     col = column(widgetbox(label), fig)
@@ -112,6 +126,7 @@ def build_figure(data_name, all_names):
     data ={'value':[],
            'time': [],
            }
+
     src = ColumnDataSource(data)
     sources[data_name] = src
     sel = Select(value=data_name, options=all_names)

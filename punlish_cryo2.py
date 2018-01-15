@@ -8,6 +8,7 @@ PORT = 5000
 READ_EVERY = 1 #seconds
 
 COMMANDS = {'ch{}:name': "input {}:NAMe?",
+            'ch{}:value': "input? {}"
             'ch{}:units': "input {}:UNITs?",
             'ch{}:sensor': "input {}:SENSor?"}
 
