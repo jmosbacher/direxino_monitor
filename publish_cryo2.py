@@ -7,10 +7,10 @@ IP = '192.168.1.5' #18B
 PORT = 5000
 READ_EVERY = 1 #seconds
 
-COMMANDS = {'ch{}:name': "input {}:NAMe?",
-            'ch{}:value': "input? {}"
-            'ch{}:units': "input {}:UNITs?",
-            'ch{}:sensor': "input {}:SENSor?"}
+COMMANDS = {"ch{}:name": "input {}:NAMe?",
+            "ch{}:value": "input? {}",
+            "ch{}:units": "input {}:UNITs?",
+            "ch{}:sensor": "input {}:SENSor?",}
 
 if __name__=='__main__':
     settings['ip'] = IP

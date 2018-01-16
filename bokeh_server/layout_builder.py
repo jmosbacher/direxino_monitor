@@ -17,6 +17,21 @@ def formatter(x):
     else:
         return x
 
+def make_indexer(datas):
+    xindexer = {}
+    for chan, rows in datas.items():
+        xindexer[chan] = {}
+        for n, name in enumerate(rows):
+             xindexer[chan][name] = n+ HSHIFT
+    return xindexer
+
+def make_index(indexer, df):
+    idx = []
+    for chan, name in zip(df['channel'].tolist(), df['name'].tolist()):
+        idx.append(indexer[chan][name])
+        log.info('{} {} {}'.format(chan, name, idx[-1]))
+    return idx
+
 def build_header():
     img = Div(text="""<h1 style='text-align:left;font-size:40px;'> Direxino</h1> <p style="float: center;">
               <img src='bokeh_server/static/Snail.png' hspace="20px" vspace="10px" width='140px,height='140px'> </p>
@@ -46,15 +61,20 @@ def build_cam_view(source, imdata):
     col = column(widgetbox(label), fig)
     return fig
 
-def build_stat_boxes(source, data, ycol, valcol,**kwargs ):
+def build_stat_boxes(source, ycol, valcol,**kwargs ):
+    df = source.to_df()
+    indexer = make_indexer(datas)
+    df['xidx'] = make_index(indexer, df)
+    df['full_name'] = df['channel']+':'+df['name']
     ttnames=kwargs.get('tooltips', None)
     xsize=kwargs.get('xsize', 100)
     ysize=kwargs.get('ysize', 75)
     title=kwargs.get('title', '')
-    xrange = [str(x) for x in set(data['xidx'])]
-    yrange = list(data[ycol].value_counts(ascending=True).index) #[str(x) for x in set(data[ycol])]
+    xrange = [str(x) for x in set(df['xidx'])]
+    yrange = list(df[ycol].value_counts(ascending=True).index) #[str(x) for x in set(data[ycol])]
 
-    source.data = data.applymap(formatter).to_dict('list')
+
+    source.data = df.applymap(formatter).to_dict('list')
 
     p = figure(plot_width=xsize*(len(xrange)+1), plot_height=ysize*(len(yrange)+1), title=title,
            naxrange, y_range=yrange, toolbar_location=None, tools="")
@@ -62,17 +82,17 @@ def build_stat_boxes(source, data, ycol, valcol,**kwargs ):
 
     text_props = {"source": source, "text_align": "center", "text_baseline": "middle"}
 
-    if 'name' in data:
+    if 'name' in df:
         y = dodge(ycol, 0.3, range=p.y_range )
         r1 = p.text(x='xidx', y=y, text="name", **text_props)
         r1.glyph.text_font_style="bold"
         #r1.glyph.text_baseline="bottom"
     r2 = p.text(x='xidx', y=ycol, text=valcol, **text_props)
-    if 'color' in data:
-        r2.glyph.text_color = data['color']
+    if 'color' in df:
+        r2.glyph.text_color = df['color']
 
     if ttnames is None:
-        names = data.columns
+        names = df.columns
     else:
         names = ttnames
     ttips = [(name.title(),'@{}'.format(name)) for name in names]
@@ -95,29 +115,29 @@ def build_stat_boxes(source, data, ycol, valcol,**kwargs ):
 
     return p, source
 
-def build_stream(data,source, scale=0.2):
-    yrange = [str(y) for y in data['full_name']]
-    p = figure(plot_width=800, plot_height=800, y_range=yrange, x_axis_type='datetime',
-               title="Time dependence")
-    xpos = data['time']
-    ym = np.mean([d for d in data['value'] if isinstance(d, (int,float))])
-    xs, ys, names = [],[],[]
-    for x,y,name in zip(data['time'],data['value'],data['full_name']):
-        if isinstance(y, (int,float)):
-            xs.append(x)
-            ys.append(scale*y)
-            names.append(name)
+# def build_stream(data,source, scale=0.2):
+#     yrange = [str(y) for y in data['full_name']]
+#     p = figure(plot_width=800, plot_height=800, y_range=yrange, x_axis_type='datetime',
+#                title="Time dependence")
+#     xpos = data['time']
+#     ym = np.mean([d for d in data['value'] if isinstance(d, (int,float))])
+#     xs, ys, names = [],[],[]
+#     for x,y,name in zip(data['time'],data['value'],data['full_name']):
+#         if isinstance(y, (int,float)):
+#             xs.append(x)
+#             ys.append(scale*y)
+#             names.append(name)
+#
+#     ypos = list(zip(names, ys))
+#     source.data = dict(xpos=xs, ypos=ypos)
+#     p.circle(x='xpos', y='ypos',  source=source, alpha=0.3)
+#
+#     p.x_range.range_padding = 0
+#     p.ygrid.grid_line_color = None
+#     return p
 
-    ypos = list(zip(names, ys))
-    source.data = dict(xpos=xs, ypos=ypos)
-    p.circle(x='xpos', y='ypos',  source=source, alpha=0.3)
-
-    p.x_range.range_padding = 0
-    p.ygrid.grid_line_color = None
-    return p
-
-def build_layout(ds,df, imdata):
-    stats, _ = build_stat_boxes(ds['stats'], df, 'channel', 'value')
+def build_layout(ds, imdata):
+    stats, _ = build_stat_boxes(ds['stats'], 'channel', 'value')
     #stream = build_stream(df.to_dict('list'), ds['stream'])
     head = build_header()
     cam = build_cam_view(ds['cam'], imdata)
